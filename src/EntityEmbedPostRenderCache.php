@@ -78,7 +78,7 @@ class EntityEmbedPostRenderCache {
         $entity_output = $this->renderEntityEmbedDisplayPlugin(
           $entity,
           $context['data-entity-embed-display'],
-          (array) $context['data-entity-embed-settings'],
+          $context['data-entity-embed-settings'],
           $context
         );
       }
