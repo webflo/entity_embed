@@ -32,8 +32,8 @@
         modes: { wysiwyg : 1 },
         canUndo: true,
         exec: function (editor, data) {
+          var url;
           data = data || {};
-
           var existingElement = getSelectedEntity(editor);
 
           var existingValues = {};
@@ -58,7 +58,7 @@
             title: existingElement ? 'Edit ' + entity_label : 'Insert ' + entity_label,
             dialogClass: 'entity-select-dialog',
             resizable: false,
-            minWidth: 800
+            minWidth: 1000
           };
 
           var saveCallback = function (values) {
@@ -77,7 +77,13 @@
           };
 
           // Open the entity embed dialog for corresponding EmbedButton.
-          Drupal.ckeditor.openDialog(editor, Drupal.url('entity-embed/dialog/entity-embed/' + editor.config.drupal.format + '/' + embed_button_id), existingValues, saveCallback, dialogSettings);
+          if ($.isEmptyObject(existingValues))
+            url = Drupal.url('entity-embed/dialog/entity-embed/' + editor.config.drupal.format + '/' + embed_button_id + '/select');
+          else {
+            url = Drupal.url('entity-embed/dialog/entity-embed/' + editor.config.drupal.format + '/' + embed_button_id);
+          }
+
+          Drupal.ckeditor.openDialog(editor, url, existingValues, saveCallback, dialogSettings);
         }
       });
 
