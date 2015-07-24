@@ -8,6 +8,7 @@
 namespace Drupal\entity_embed\Entity;
 
 use Drupal\Core\Config\Entity\ConfigEntityBase;
+use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\entity_embed\EmbedButtonInterface;
 use Drupal\entity_embed\EntityHelperTrait;
 
@@ -160,5 +161,50 @@ class EmbedButton extends ConfigEntityBase implements EmbedButtonInterface {
 
     return $this->dependencies;
   }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function postSave(EntityStorageInterface $storage, $update = TRUE) {
+    parent::postSave($storage, $update);
+
+    $new_button_icon_uuid = $this->get('button_icon_uuid');
+    if (isset($this->original)) {
+      $unchanged = $this->original;
+      $old_button_icon_uuid = $unchanged->get('button_icon_uuid');
+
+      if (!empty($old_button_icon_uuid) && $old_button_icon_uuid != $new_button_icon_uuid) {
+        if ($file = $this->entityManager()->loadEntityByUuid('file', $old_button_icon_uuid)) {
+          $this->fileUsage()->delete($file, 'entity_embed', $this->getEntityTypeId(), $this->id());
+        }
+      }
+    }
+
+    if ($new_button_icon_uuid) {
+      if ($file = $this->entityManager()->loadEntityByUuid('file', $new_button_icon_uuid)) {
+        $usage = $this->fileUsage()->listUsage($file);
+        if (empty($usage['entity_embed'][$this->getEntityTypeId()][$this->id()])) {
+          $this->fileUsage()->add($file, 'entity_embed', $this->getEntityTypeId(), $this->id());
+        }
+      }
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function postDelete(EntityStorageInterface $storage, array $entities) {
+    parent::postDelete($storage, $entities);
+
+    foreach ($entities as $entity) {
+      $button_icon_uuid = $entity->get('button_icon_uuid');
+      if ($button_icon_uuid) {
+        if ($file = \Drupal::entityManager()->loadEntityByUuid('file', $button_icon_uuid)) {
+          \Drupal::service('file.usage')->delete($file, 'entity_embed', $entity->getEntityTypeId(), $entity->id());
+        }
+      }
+    }
+  }
+
 
 }

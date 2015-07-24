@@ -14,6 +14,7 @@ use Drupal\Core\Entity\EntityStorageException;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\entity_embed\EntityEmbedDisplay\EntityEmbedDisplayManager;
+use Drupal\file\FileUsage\FileUsageInterface;
 
 /**
  * Wrapper methods for entity loading and rendering.
@@ -45,6 +46,13 @@ trait EntityHelperTrait {
    * @var \Drupal\entity_embed\EntityEmbedDisplay\EntityEmbedDisplayManager.
    */
   protected $displayPluginManager;
+
+  /**
+   * The file usage service.
+   *
+   * @var \Drupal\file\FileUsage\FileUsageInterface
+   */
+  protected $fileUsage;
 
   /**
    * Loads an entity from the database.
@@ -321,4 +329,31 @@ trait EntityHelperTrait {
     $this->displayPluginManager = $display_plugin_manager;
     return $this;
   }
+
+  /**
+   * Returns the file usage service.
+   *
+   * @return \Drupal\file\FileUsage\FileUsageInterface
+   *   The file usage service.
+   */
+  protected function fileUsage() {
+    if (!isset($this->fileUsage)) {
+      $this->fileUsage = \Drupal::service('file.usage');
+    }
+    return $this->fileUsage;
+  }
+
+  /**
+   * Sets the file usage service.
+   *
+   * @param \Drupal\file\FileUsage\FileUsageInterface $file_usage
+   *   The file usage service.
+   *
+   * @return self
+   */
+  public function setFileUsage(FileUsageInterface $file_usage) {
+    $this->fileUsage = $file_usage;
+    return $this;
+  }
+
 }
